@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>title</title>
+  <link type="text/css" rel="stylesheet" href="./assets/antd.min.css" />
+  <style>
+    
+  </style>
+  <!-- vue 版本需要注意，不是每一个版本都起作用的 -->
+  <script src="./assets/vue.min.js"></script>
+  <script src="./assets/antd.min.js"></script>
+  <script src="./assets/axios.min.js"></script>
+  <script src="./assets/jquery.min.js"></script>
+
+</head>
+
+<body>
+  <div id="app" >
+    
+    <!-- 统计 -->
+    <div style="padding: 16px; ">
+      <!-- <a-row :gutter="[16,16]">
+        <a-col :span="12">
+          <a-card size="small">
+            <a-col :span="12">
+              <a-statistic
+                title="Feed"
+                :value="11"
+                :precision="2"
+                suffix="%"
+                :value-style="{ color: '#3f8600' }"
+                style="margin-right: 50px"
+              >
+                <template #prefix>
+                  <a-icon type="arrow-up" />
+                </template>
+              </a-statistic>
+            </a-col>
+            <a-col :span="12">
+              <a-statistic
+                title="Feed"
+                :value="11"
+                :precision="2"
+                suffix="%"
+                :value-style="{ color: '#cf1322' }"
+                style="margin-right: 50px"
+              >
+                <template #prefix>
+                  <a-icon type="arrow-down" />
+                </template>
+              </a-statistic>
+            </a-col>
+            
+          </a-card>
+        </a-col>
+        <a-col :span="12">
+          <a-card size="small">
+            <a-col :span="12">
+              <a-statistic
+                title="Feed"
+                :value="11"
+                :precision="2"
+                suffix="%"
+                :value-style="{ color: '#3f8600' }"
+                style="margin-right: 50px"
+              >
+                <template #prefix>
+                  <a-icon type="arrow-up" />
+                </template>
+              </a-statistic>
+            </a-col>
+            <a-col :span="12">
+              <a-statistic
+                title="Feed"
+                :value="11"
+                :precision="2"
+                suffix="%"
+                :value-style="{ color: '#3f8600' }"
+                style="margin-right: 50px"
+              >
+                <template #prefix>
+                  <a-icon type="arrow-up" />
+                </template>
+              </a-statistic>
+            </a-col>
+            
+          </a-card>
+        </a-col>
+        
+      </a-row> -->
+      <a-row :gutter="[16,16]">
+        <a-col :span="8">
+          <a-card size="small">
+            <a-statistic
+              title="总金额(元)"
+              :value="statistic.ZJE"
+              :precision="2"
+              style="margin-right: 50px"
+            >
+            </a-statistic>
+          </a-card>
+        </a-col>
+        <a-col :span="8">
+          <a-card size="small">
+            <a-statistic
+              title="持有收益(元)"
+              :value="statistic.CYSY"
+              :precision="2"
+              :value-style="{ color: statistic.CYSY < 0 ? '#3f8600' : '#cf1322' }"
+              style="margin-right: 50px"
+            >
+              <template #prefix>
+                <a-icon :type="statistic.CYSY < 0 ? 'arrow-down' : 'arrow-up'" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+        <a-col :span="8">
+          <a-card size="small">
+            <a-statistic
+              title="持有收益率"
+              :value="statistic.CYSYL"
+              :precision="2"
+              suffix="%"
+              :value-style="{ color: statistic.CYSY < 0 ? '#3f8600' : '#cf1322' }"
+              style="margin-right: 50px"
+            >
+              <template #prefix>
+                <a-icon :type="statistic.CYSY < 0 ? 'arrow-down' : 'arrow-up'" />
+              </template>
+            </a-statistic>
+          </a-card>
+        </a-col>
+        
+      </a-row>
+    </div>
+
+    <!-- 表格 -->
+    <div style="padding: 0 16px; ">
+      <a-table 
+        :columns="columns" 
+        size="small"
+        :scroll="{y: 250}"
+        :data-source="showData"
+        :pagination="false"
+      >
+
+        
+        <span :style="{color:record.GSZZL<0?'#3f8600':'#cf1322'}" slot="GSZ" slot-scope="text, record">
+          <span style="font-weight: 600;">{{record.GSZ}}</span>
+          <br/>
+          <span >{{record.GSZZL}}%</span>
+        </span>
+
+        <span slot="NAV" slot-scope="text, record">
+          <span style="font-weight: 600;">{{record.NAV}}</span>
+          <br/>
+          <span >({{record.PDATE}})</span>
+        </span>
+
+        <span style="font-weight: 600;" slot="total" slot-scope="text, record"> {{record.total.toFixed(2)}}</span>
+        
+        <span :style="{color:record.CYSY<0?'#3f8600':'#cf1322'}" slot="CYSY" slot-scope="text, record">
+          <span style="font-weight: 600;">{{record.CYSY.toFixed(2)}}</span>
+          <br/>
+          <span >{{record.CYSYL.toFixed(2)}}%</span>
+        </span>
+      </a-table>
+    </div>
+    <!-- debug  -->
+    <!-- <span>{{msg}}</span>
+    <a-button @click="testBtn">modal</a-button> -->
+    <div style="position:fixed;top:10px;right:10px">
+      <a-button icon="setting" size="large" shape="circle" @click="showFundManModal"/>
+    </div>
+    <!-- 弹框 -->
+    <a-drawer
+      destroy-on-close
+      :visible="fundManModal"
+      width="100%"
+      :mask-closable="false"
+      title="持仓管理"
+      @close="closeFundManModal"
+    >
+      <a-form-model
+        ref="fundManForm"
+        :model="fundManForm"
+        v-bind="formItemLayout"
+        hide-required-mark
+      >
+        <a-row
+          v-for="(fund, index) in fundManForm.funds"
+          :key="index"
+          type="flex"
+          justify="space-around"
+        >
+          <a-col :span="7">
+            <a-form-model-item
+              label="基金代码"
+              :prop="'funds.' + index + '.FCODE'"
+              :rules="[
+                {
+                  required: true,
+                  message: '是不是忘填了呀',
+                  trigger: 'blur',
+                },
+                {
+                  pattern: /[0-9]{6}/,
+                  message: '是不是填错了呀',
+                  trigger: 'blur',
+                }
+              ]"
+            >
+              <a-input
+                v-model="fund.FCODE"
+                placeholder="基金代码"
+              />
+            </a-form-model-item>
+          </a-col>
+          <a-col :span="7">
+            <a-form-model-item
+              label="持有份额"
+              :prop="'funds.' + index + '.CYFE'"
+              :rules="{
+                required: true,
+                message: '是不是忘填了呀',
+                trigger: 'blur',
+              }"
+            >
+              <a-input-number
+                v-model="fund.CYFE"
+                placeholder="持有份额"
+                style="width:100%"
+                :min="0"
+                :step="0.01"
+              />
+              
+            </a-form-model-item>
+          </a-col>
+          <a-col :span="7">
+            <a-form-model-item
+              label="持仓成本"
+              :prop="'funds.' + index + '.CCCB'"
+              :rules="{
+                required: true,
+                message: '是不是忘了填呀',
+                trigger: 'blur',
+              }"
+            >
+              <a-input-number
+                v-model="fund.CCCB"
+                placeholder="持仓成本"
+                style="width:100%"
+                :min='0'
+                :step='0.0001'
+              />
+              
+            </a-form-model-item>
+          </a-col>
+          <a-col :span="2">
+            <a-form-model-item>
+              <a-button
+                icon="minus"
+                type="danger"
+                ghost
+                @click="removeFund(index)"
+              />
+            </a-form-model-item>
+            <!-- <a-icon
+                v-if="fundManForm.funds.length > 1"
+                class="dynamic-delete-button"
+                type="minus-circle-o"
+                :disabled="fundManForm.funds.length === 1"
+                @click="removeFund(fund)"
+              /> -->
+          </a-col>
+        </a-row>
+        
+        <a-form-model-item>
+          <a-button 
+            icon="plus" 
+            type="primary"
+            ghost  
+            @click="addFundInput"
+          />
+        </a-form-model-item>
+      </a-form-model>
+      <a-button style="position:fixed;bottom:30px;right:30px" type="primary" @click="saveFundList">保存</a-button>
+    </a-drawer>
+  </div>
+  <script type="application/javascript">
+    let testData = [
+      {
+        SHORTNAME:"鹏华匠心精选混合C",
+        NAV: 1.8765,
+        GSZ: 1.7573,
+        GSZZL: 1.7573,
+        total: 10909,
+        CYSY: -1000,
+        PDATE: '2021-02-18',
+        CYSYL: -20.12
+      },
+      {
+        SHORTNAME:"鹏华匠心精选混合C",
+        NAV: 1.8765,
+        GSZ: 1.7573,
+        GSZZL: -1.7573,
+        total: 10909,
+        CYSY: 1000,
+        PDATE: '2021-02-18',
+        CYSYL: 20.12
+      },
+      {
+        SHORTNAME:"鹏华匠心精选混合C",
+        NAV: 1.8765,
+        GSZ: 1.7573,
+        GSZZL: 1.7573,
+        total: 10909,
+        CYSY: 1000,
+        PDATE: '2021-02-18',
+        CYSYL: 20.12
+      }
+      
+    ]
+    let columns = [
+      {
+        title: '名称',
+        dataIndex: 'SHORTNAME',
+        key: 'SHORTNAME',
+      },
+      {
+        title: '最新估值',
+        dataIndex: 'GSZ',
+        key: 'GSZ',
+        scopedSlots: { customRender: 'GSZ' } 
+      },
+      {
+        title: '基金净值',
+        dataIndex: 'NAV',
+        key: 'NAV',
+        scopedSlots: { customRender: 'NAV' } 
+      },
+      {
+        title: '持有金额',
+        dataIndex: 'total',
+        key: 'total',
+        scopedSlots: { customRender: 'total' } 
+      },
+      // {
+      //   title: '昨日收益',
+      //   dataIndex: 'addess',
+      //   key: 'addess',
+      // },
+      {
+        title: '持有收益/率',
+        dataIndex: 'CYSY',
+        key: 'CYSY',
+        scopedSlots: { customRender: 'CYSY' } 
+      },
+      // {
+      //   title: '持有收益率',
+      //   dataIndex: 'adressw',
+      //   key: 'adressw',
+      // },
+    ]
+    let testFundList = [
+      {FCODE:'009571', CCCB: 2.00, CYFE: 7845.56},
+      {FCODE:'510050', CCCB: 2.00, CYFE: 7845.56},
+      {FCODE:'481010', CCCB: 2.00, CYFE: 7845.56},
+    ]
+    utools.onPluginReady(()=>{
+      if(!app.getDB()){
+        app.saveDB()
+      }
+      app.updateFundTable()
+    })
+    let app = new Vue({
+      el: '#app',
+      data: {
+        msg:'',
+        columns,
+        testData,
+        showData: [],
+        rev: '',
+        dbData: '',
+        fundList:[{FCODE:'009571', CCCB: 2.00, CYFE: 7845},
+                {FCODE:'510050', CCCB: 2.00, CYFE: 7845.56},
+                {FCODE:'481010', CCCB: 2.00, CYFE: 7845.56},],
+        statistic: {
+          ZJE:0,
+          CYSY:0,
+          CYSYL:0,
+        },
+        fundManModal: false,
+        formItemLayout: {
+          labelCol: {
+            xs: { span: 12 },
+            sm: { span: 10 },
+          },
+          wrapperCol: {
+            xs: { span: 12 },
+            sm: { span: 14 },
+          },
+        },
+        fundManForm: {
+          funds: [],
+        },
+        FundMNewApi: ''
+      },
+      methods: {
+        init(){
+          this.showData = this.testdata
+        },
+        getFundByCode(code) {
+          let res = {}
+          $.ajax({
+            type: "get",
+            url: "http://fundgz.1234567.com.cn/js/" + code + ".js",
+            dataType: "jsonp",
+            jsonpCallback: 'jsonpgz',
+            success: r=>{
+              this.showData.push(r)
+            }
+          })
+        },
+        updateFundTable(){
+          if(!this.fundList || this.fundList.length == 0){
+            this.showData=[]
+            this.statistic={}
+            return
+          }
+          axios.get(this.FundMNewApi + '/FundMNFInfo',{params: {
+            plat: 'Android',
+            product: 'EFund',
+            Version: '6.2.4',
+            Fcodes: this.fundList.map(i=>i.FCODE).toString(),
+            appType: 'ttjj',
+            deviceid: '513569d7310b10e518664b04af3090c3a5086457'
+          }}).then(res=>{
+            if(res.status == 200){
+              if(res.data.ErrCode == 0){
+                let data = res.data.Datas
+                let statistic = {
+                  ZJE:0,
+                  CYSY:0,
+                }
+                data.forEach(record=>{
+                  let baseInfo = this.fundList.find(i=>i.FCODE == record.FCODE)
+                  record.total = baseInfo.CYFE * record.NAV 
+                  record.CYSY = (record.NAV - baseInfo.CCCB) * baseInfo.CYFE
+                  record.CYSYL = baseInfo.CCCB==0 ? 0 : (record.NAV - baseInfo.CCCB) / baseInfo.CCCB * 100 
+                  statistic.ZJE += record.total
+                  statistic.CYSY += record.CYSY
+                })
+                statistic.CYSYL = statistic.CYSY==0 ? 0 : statistic.CYSY * 100 / (statistic.ZJE-statistic.CYSY)
+                this.statistic = statistic
+                this.showData = data
+
+              }
+
+            }
+          })
+        },
+        saveDB(){
+          let dbRes = utools.db.put({
+            _id:'fundList',
+            data: {
+              name: 'favFunds',
+              favlist: [
+                {FCODE:'009571', CCCB: 2.00, CYFE: 5000},
+                {FCODE:'510050', CCCB: 2.00, CYFE: 5000},
+                {FCODE:'481010', CCCB: 2.00, CYFE: 5000},
+              ],
+            }
+          })
+          this.rev = dbRes.rev
+
+        },
+        updateDB(){
+          console.log(this.rev);
+          let dbRes = utools.db.put({
+            _id:'fundList',
+            _rev: this.rev,
+            data: {
+              name: 'favFunds',
+              favlist: this.fundList,
+            }
+          })
+          this.msg = dbRes
+          this.rev = dbRes.rev
+        },
+        getDB(){
+          let res = utools.db.get('fundList')
+          if(!res){
+            return false
+          }        
+          this.fundList = res.data.favlist
+          this.msg=res
+          this.rev = res._rev
+          return true
+        },
+        
+        // manage modal
+        showFundManModal(){
+          this.fundManForm.funds=this.fundList
+          this.fundManModal=true
+        },
+        closeFundManModal(){
+          this.fundManModal=false
+        },
+        addFundInput(){
+          this.fundManForm.funds.push({
+            FCODE: '',
+            CYFE: 0,
+            CCCB: 0
+          });
+        },
+        removeFund(index){
+          this.fundManForm.funds.splice(index,1)
+        },
+        saveFundList(){
+          this.$refs.fundManForm.validate(bool=>{
+            if(bool){
+              this.fundList = this.fundManForm.funds
+              this.updateDB()
+              this.updateFundTable()
+              this.fundManModal=false
+            }
+          })
+        },
+        testBtn(){
+          
+        }
+      },
+    });
+  </script>
+</body>
+
+</html>

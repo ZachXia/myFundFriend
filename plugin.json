@@ -1,0 +1,15 @@
+{
+	"pluginName": "好基友",
+	"description": "方便好用的基金看板",
+    "version": "0.0.1",
+    "author": "NeX8yte",
+	"logo": "logo.png",
+	"main": "index.html",
+	"features": [
+		{
+		  "code": "jj",
+		  "explain": "查看基金",
+		  "cmds":["基金", "jj"]
+		}
+	]
+}
