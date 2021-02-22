@@ -170,8 +170,11 @@
       </a-table>
     </div>
     <!-- debug  -->
-    <!-- <span>{{msg}}</span>
-    <a-button @click="testBtn">modal</a-button> -->
+    <div v-if="debug">
+      <span>{{msg}}</span>
+      <a-button @click="testBtn">modal</a-button>
+    </div>
+    
     <div style="position:fixed;top:10px;right:10px">
       <a-button icon="setting" size="large" shape="circle" @click="showFundManModal"/>
     </div>
@@ -290,6 +293,7 @@
       <a-button style="position:fixed;bottom:30px;right:30px" type="primary" @click="saveFundList">保存</a-button>
     </a-drawer>
   </div>
+  <script src="./utools.js"></script>
   <script type="application/javascript">
     let testData = [
       {
@@ -370,16 +374,12 @@
       {FCODE:'510050', CCCB: 2.00, CYFE: 7845.56},
       {FCODE:'481010', CCCB: 2.00, CYFE: 7845.56},
     ]
-    utools.onPluginReady(()=>{
-      if(!app.getDB()){
-        app.saveDB()
-      }
-      app.updateFundTable()
-    })
+    
     let app = new Vue({
       el: '#app',
       data: {
-        msg:'',
+        debug: false,
+        msg: '1',
         columns,
         testData,
         showData: [],
@@ -413,6 +413,19 @@
         init(){
           this.showData = this.testdata
         },
+        onCreated(){
+          if(!this.getDB()){
+            this.saveDB()
+          }
+          // this.updateFundTable()
+          setInterval(() => {
+            updateFundTable()
+          }, 1000 * 60);
+        },
+        onEnter({code, type, payload, optional}){
+          this.msg=utools.getLocalId()
+          this.updateFundTable()
+        },
         getFundByCode(code) {
           let res = {}
           $.ajax({
@@ -437,7 +450,7 @@
             Version: '6.2.4',
             Fcodes: this.fundList.map(i=>i.FCODE).toString(),
             appType: 'ttjj',
-            deviceid: '513569d7310b10e518664b04af3090c3a5086457'
+            deviceid: utools.getLocalId()
           }}).then(res=>{
             if(res.status == 200){
               if(res.data.ErrCode == 0){
