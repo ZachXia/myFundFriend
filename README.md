@@ -1,3 +1,6 @@
+项目停止维护
+------
+
 一款轻量级的基金看板工具。你可以通过添加持仓列表来快速查看基金行情以及收益情况。[开源地址](https://github.com/ZachXia/myFundFriend)
 
 [![GPL Licence](https://img.shields.io/badge/license-GPL--3.0-green.svg)](https://opensource.org/licenses/GPL-3.0/) 
